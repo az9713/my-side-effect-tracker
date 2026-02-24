@@ -2,8 +2,7 @@
 
 A web application that tracks serious side effects of medical drugs using data from ClinicalTrials.gov. Search for any drug and get aggregated adverse event probabilities from recent clinical trials, stored in a local database for tracking over time.
 
-<!-- TODO: Replace the link below with the actual GitHub issue attachment URL once uploaded -->
-https://github.com/YOUR_USERNAME/YOUR_REPO/assets/VIDEO_PLACEHOLDER
+https://github.com/user-attachments/assets/d58e03ad-67dd-4fae-bed4-8c2e2578f721
 
 > **Acknowledgement:** This is a modified version of the original repository [NeuralNine/youtube-tutorials/Side Effects Tracker](https://github.com/NeuralNine/youtube-tutorials/tree/main/Side%20Effects%20Tracker), inspired by the YouTube video ["Building A Medical Side Effect Tracker in Python"](https://www.youtube.com/watch?v=SA-YyejZ2Cs&t=4s). All credits go to the original developer and host of the video. See [docs/bugfixes.md](docs/bugfixes.md) for a full list of changes from the original.
 
