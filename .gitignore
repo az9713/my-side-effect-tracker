@@ -21,10 +21,13 @@ uv.lock
 # Working files
 .ignore/
 
-# Original uncompressed videos (compressed versions are tracked)
+# Videos (only aspirin_ibuprofen_compressed.mp4 is tracked)
 side-effect-tracker/docs/ibuprofen.mp4
+side-effect-tracker/docs/ibuprofen_compressed.mp4
 side-effect-tracker/docs/ask_agent_paracetamol.mp4
+side-effect-tracker/docs/ask_agent_paracetamol_compressed.mp4
 side-effect-tracker/docs/finasteride.mp4
+side-effect-tracker/docs/finasteride_compressed.mp4
 side-effect-tracker/docs/aspirin_ibuprofen.mp4
 
 # Claude Code
