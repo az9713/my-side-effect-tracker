@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Side Effect Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+        h1 { color: #333; }
+        .search-box { margin: 20px 0; display: flex; gap: 10px; }
+        .search-box input { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        .search-box button { padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .search-box button:hover { background: #0056b3; }
+        .search-box button:disabled { background: #999; cursor: not-allowed; }
+        .drug-card { background: #f8f9fa; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        .drug-card h3 { margin: 0 0 10px 0; color: #007bff; }
+        .side-effect { padding: 8px; margin: 5px 0; background: white; border-left: 3px solid #28a745; }
+        .no-effects { color: #666; font-style: italic; }
+        #loading { display: none; color: #666; margin: 10px 0; }
+        #error { display: none; color: #c00; margin: 10px 0; }
+        #result-msg { display: none; color: #28a745; margin: 10px 0; }
+        .agent-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+        .agent-section h2 { color: #666; }
+        #agent-response { margin: 10px 0; padding: 12px; background: #f0f0f0; border-radius: 4px; display: none; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Side Effect Tracker</h1>
+
+    <h2>Search Drug Side Effects</h2>
+    <p>Enter a drug name to fetch reported serious side effects from ClinicalTrials.gov.</p>
+    <div class="search-box">
+        <input type="text" id="drug-name" placeholder="e.g. paracetamol, aspirin, ibuprofen">
+        <button id="search-btn" onclick="searchDrug()">Search</button>
+    </div>
+    <div id="loading">Fetching side effects from ClinicalTrials.gov...</div>
+    <div id="error"></div>
+    <div id="result-msg"></div>
+
+    {% if agent_enabled %}
+    <div class="agent-section">
+        <h2>AI Agent Query</h2>
+        <p>Ask the LLM agent anything about drug side effects.</p>
+        <div class="search-box">
+            <input type="text" id="agent-query" placeholder="e.g. Get me side effects of metformin">
+            <button id="agent-btn" onclick="agentQuery()">Ask Agent</button>
+        </div>
+        <div id="agent-response"></div>
+    </div>
+    {% endif %}
+
+    <h2>Drugs &amp; Side Effects</h2>
+    {% if drugs %}
+        {% for drug in drugs %}
+        <div class="drug-card">
+            <h3>{{ drug.drug_name }}</h3>
+            {% if drug.side_effect_reports %}
+                {% for report in drug.side_effect_reports %}
+                <div class="side-effect">
+                    <strong>{{ report.side_effect_name }}</strong> -
+                    Probability: {{ (report.side_effect_probability * 100)|round(1) }}%
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-effects">No side effects reported</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No drugs in database yet. Search for one above!</p>
+    {% endif %}
+
+    <script>
+        async function searchDrug() {
+            const name = document.getElementById('drug-name').value.trim();
+            if (!name) return;
+
+            const btn = document.getElementById('search-btn');
+            const loading = document.getElementById('loading');
+            const errorEl = document.getElementById('error');
+            const resultEl = document.getElementById('result-msg');
+
+            btn.disabled = true;
+            loading.style.display = 'block';
+            errorEl.style.display = 'none';
+            resultEl.style.display = 'none';
+
+            try {
+                const resp = await fetch('/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ drug_name: name })
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    errorEl.textContent = data.error || 'Something went wrong';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                resultEl.textContent = `Found ${data.total_side_effects} side effects for "${data.drug}" (${data.new_side_effects} new).`;
+                resultEl.style.display = 'block';
+
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (e) {
+                errorEl.textContent = 'Network error: ' + e.message;
+                errorEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        {% if agent_enabled %}
+        async function agentQuery() {
+            const query = document.getElementById('agent-query').value.trim();
+            if (!query) return;
+
+            const btn = document.getElementById('agent-btn');
+            const responseEl = document.getElementById('agent-response');
+            btn.disabled = true;
+            responseEl.style.display = 'block';
+            responseEl.textContent = 'Agent is thinking...';
+
+            try {
+                const resp = await fetch('/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                const data = await resp.json();
+                responseEl.textContent = data.response || data.error;
+            } catch (e) {
+                responseEl.textContent = 'Error: ' + e.message;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        {% endif %}
+
+        document.getElementById('drug-name').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchDrug();
+        });
+
+        {% if agent_enabled %}
+        document.getElementById('agent-query').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') agentQuery();
+        });
+        {% endif %}
+    </script>
+</body>
+</html>
